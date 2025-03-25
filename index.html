@@ -4,20 +4,22 @@
   <meta charset="UTF-8">
   <title>URL 검사기</title>
 
-  <!-- ✅ 반드시 먼저: ORT 환경 설정 -->
+  <!-- ✅ 온전한 환경 설정 코드 -->
   <script>
-    ort = window.ort || {};
-    ort.env = ort.env || {};
-    ort.env.wasm = ort.env.wasm || {};
-    ort.env.wasm.proxy = false;
-    ort.env.wasm.simd = false;
-    ort.env.wasm.numThreads = 1;
+    window.ort = window.ort || {};
+    window.ort.env = {
+      wasm: {
+        proxy: false,
+        simd: false,
+        numThreads: 1
+      }
+    };
   </script>
 
-  <!-- ✅ 반드시 ort.min.js를 먼저 로드 -->
+  <!-- ✅ ort.min.js 반드시 먼저 로드 -->
   <script src="libs/ort.min.js"></script>
 
-  <!-- ✅ 그 다음 check.js 실행 -->
+  <!-- ✅ check.js는 ort.min.js 다음에 -->
   <script src="js/check.js"></script>
 </head>
 <body>
