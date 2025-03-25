@@ -3,19 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <title>URL 검사기</title>
+
+  <!-- ✅ 반드시 먼저: ORT 환경 설정 -->
   <script>
-    // 백엔드 자동 로딩 비활성화 + CPU로 강제
-    ort.env.wasm.wasmPaths = './libs/';
-    ort.env.wasm.numThreads = 1;
-    ort.env.wasm.simd = false;
+    ort = window.ort || {};
+    ort.env = ort.env || {};
+    ort.env.wasm = ort.env.wasm || {};
     ort.env.wasm.proxy = false;
-    ort.env.debug = false;
+    ort.env.wasm.simd = false;
+    ort.env.wasm.numThreads = 1;
   </script>
+
+  <!-- ✅ 반드시 ort.min.js를 먼저 로드 -->
   <script src="libs/ort.min.js"></script>
+
+  <!-- ✅ 그 다음 check.js 실행 -->
+  <script src="js/check.js"></script>
 </head>
 <body>
   <h2 id="status">URL 검사 결과 표시 영역</h2>
-
-  <script src="js/check.js"></script>
 </body>
 </html>
