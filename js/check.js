@@ -1,15 +1,27 @@
+// js/check.js
+
+// 페이지 로드가 완료된 후 run 실행
+window.addEventListener("DOMContentLoaded", run);
+
 async function run() {
-  const params = new URLSearchParams(window.location.search);
-  const target = params.get('target');
-  if (!target) {
-    document.getElementById("status").textContent = "유효하지 않은 URL입니다.";
+  const statusElem = document.getElementById("status");
+  if (!statusElem) {
+    console.error("❌ 'status' 요소를 찾을 수 없습니다.");
     return;
   }
 
-  document.getElementById("status").textContent = `분석 중: ${target}`;
+  const params = new URLSearchParams(window.location.search);
+  const target = params.get('target');
+  if (!target) {
+    statusElem.textContent = "유효하지 않은 URL입니다.";
+    return;
+  }
 
-  const session = await ort.InferenceSession.create('neuro_fuzzy_model.onnx');
+  statusElem.textContent = `분석 중: ${target}`;
 
+  const session = await ort.InferenceSession.create('model/model.onnx');
+
+  // 🎯 입력 전처리
   const x_fuzzy = extractFuzzyFeatures(target); // Float32Array [1, 15]
   const x_char = tokenizeChar(target);         // Int32Array [1, 100]
   const x_word = tokenizeWord(target);         // Int32Array [1, 30]
@@ -21,14 +33,12 @@ async function run() {
   };
 
   const results = await session.run(feeds);
-  console.log(Object.keys(results));  // → ['output']
-
   const score = results.output.data[0];
 
   if (score > 0.5) {
-    document.getElementById("status").textContent = "⚠️ 피싱 URL로 판단되어 차단되었습니다.";
+    statusElem.textContent = "⚠️ 피싱 URL로 판단되어 차단되었습니다.";
   } else {
-    document.getElementById("status").textContent = "✅ 안전한 URL입니다. 이동 중...";
+    statusElem.textContent = "✅ 안전한 URL입니다. 이동 중...";
     setTimeout(() => window.location.href = target, 1000);
   }
 }
@@ -101,5 +111,3 @@ function tokenizeWord(text, maxLen = 30, vocabSize = 10000) {
   while (seq.length < maxLen) seq.push(0);
   return Int32Array.from(seq.slice(0, maxLen));
 }
-
-run();
