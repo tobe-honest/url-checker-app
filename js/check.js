@@ -19,7 +19,7 @@ async function run() {
 
   statusElem.textContent = `분석 중: ${target}`;
 
-  const session = await ort.InferenceSession.create('model/model.onnx');
+  const session = await ort.InferenceSession.create('neuro_fuzzy_model.onnx');
 
   // 🎯 입력 전처리
   const x_fuzzy = extractFuzzyFeatures(target); // Float32Array [1, 15]
