@@ -8,7 +8,7 @@ async function run() {
 
   document.getElementById("status").textContent = `분석 중: ${target}`;
 
-  const session = await ort.InferenceSession.create('model/model.onnx');
+  const session = await ort.InferenceSession.create('neuro_fuzzy_model.onnx');
 
   const x_fuzzy = extractFuzzyFeatures(target); // Float32Array [1, 15]
   const x_char = tokenizeChar(target);         // Int32Array [1, 100]
@@ -21,7 +21,9 @@ async function run() {
   };
 
   const results = await session.run(feeds);
-  const score = results.neural_output.data[0];
+  console.log(Object.keys(results));  // → ['output']
+
+  const score = results.output.data[0];
 
   if (score > 0.5) {
     document.getElementById("status").textContent = "⚠️ 피싱 URL로 판단되어 차단되었습니다.";
