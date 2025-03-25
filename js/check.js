@@ -30,8 +30,8 @@ async function run() {
 
   const feeds = {
     x_fuzzy: new ort.Tensor('float32', x_fuzzy, [1, 15]),
-    x_char: new ort.Tensor('int64', BigInt64Array.from(x_char), [1, 100]),
-    x_word: new ort.Tensor('int64', BigInt64Array.from(x_word), [1, 30]),
+    x_char: new ort.Tensor('int64', BigInt64Array.from(Array.from(x_char, v => BigInt(v))), [1, 100]),
+    x_word: new ort.Tensor('int64', BigInt64Array.from(Array.from(x_word, v => BigInt(v))), [1, 30]),
   };
 
   const results = await session.run(feeds);
