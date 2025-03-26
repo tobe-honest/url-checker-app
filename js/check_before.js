@@ -19,11 +19,12 @@ async function run() {
 
   statusElem.textContent = `분석 중: ${target}`;
 
+  // 💡 백엔드 명시적으로 설정 (wasm)
   const session = await ort.InferenceSession.create('neuro_fuzzy_model.onnx', {
     executionProviders: ['wasm']
   });
 
-  const x_fuzzy = createFeatureVector(target); // Float32Array [1, 15]
+  const x_fuzzy = extractFuzzyFeatures(target); // Float32Array [1, 15]
   const x_char = tokenizeChar(target);         // Int32Array [1, 100]
   const x_word = tokenizeWord(target);         // Int32Array [1, 30]
 
@@ -37,6 +38,7 @@ async function run() {
   const score = results.output.data[0];
   console.log("✅ 모델 예측 score:", score);
 
+
   if (score > 0.5) {
     statusElem.textContent = "⚠️ 피싱 URL로 판단되어 차단되었습니다.";
   } else {
@@ -49,41 +51,7 @@ async function run() {
   }
 }
 
-function extractTyposquatting(url) {
-  const lower = url.toLowerCase();
-  for (let i = 0; i < lower.length - 1; i++) {
-    const pair = lower[i] + lower[i + 1];
-    if ((pair === 'oo' || pair === '00') ||
-        (pair === 'll' || pair === '11') ||
-        (pair === 'il' || pair === 'li')) {
-      return true;
-    }
-  }
-  const typosquatting_keywords = [
-    'goole', 'gogle', 'googl', 'gooogle', 'gmai', 'gamil', 'gmaill',
-    'facebok', 'faceboook', 'facebokk', 'facbook', 'faccebook',
-    'facebooo', 'facebokoo', 'lnstagram', 'instagraam', 'instaagram',
-    'instagrma', 'instargram', 'lnstagraam', 'outlookk', 'outlok', 'yahoomail'
-  ];
-  return typosquatting_keywords.some(keyword => lower.includes(keyword));
-}
-
-function extractDomainAndSubdomain(url) {
-  try {
-    const psl = window.psl;
-    const a = document.createElement("a");
-    a.href = url.startsWith("http") ? url : "https://" + url;
-    const parsed = psl.parse(a.hostname);
-    return {
-      domain: parsed.domain || "",
-      subdomain: parsed.subdomain || "None"
-    };
-  } catch (e) {
-    return { domain: "", subdomain: "None" };
-  }
-}
-
-function createFeatureVector(url) {
+function extractFuzzyFeatures(url) {
   const url_length = url.length;
   const special_chars = (url.match(/[^\w\s]/g) || []).length;
   const digits = (url.match(/\d/g) || []).length;
@@ -95,10 +63,15 @@ function createFeatureVector(url) {
   const has_https = url.startsWith('https') ? 1 : 0;
   const has_www = url.includes('www.') ? 1 : 0;
   const has_com = url.includes('.com') ? 1 : 0;
+  const domain_hyphen = /:\/\/(www\.)?([^\/]+)-/.test(url) ? 1 : 0;
 
-  const { domain } = extractDomainAndSubdomain(url);
-  const domain_hyphen = domain.includes('-') ? 1 : 0;
-  const typosquatting = extractTyposquatting(url) ? 1 : 0;
+  const typosquatting_keywords = [
+    'goole', 'gogle', 'googl', 'gooogle', 'gmai', 'gamil', 'gmaill',
+    'facebok', 'faceboook', 'facebokk', 'facbook', 'faccebook',
+    'facebooo', 'facebokoo', 'lnstagram', 'instagraam', 'instaagram',
+    'instagrma', 'instargram', 'lnstagraam', 'outlookk', 'outlok', 'yahoomail'
+  ];
+  const typo = typosquatting_keywords.some(kw => url.toLowerCase().includes(kw)) ? 1 : 0;
 
   const placeholder1 = 0;
   const placeholder2 = 0;
@@ -106,7 +79,7 @@ function createFeatureVector(url) {
   return new Float32Array([
     url_length, special_chars, digits, hyphens, subdomains,
     entropy, has_ip, has_at, has_https, has_www, has_com,
-    domain_hyphen, typosquatting, placeholder1, placeholder2
+    domain_hyphen, typo, placeholder1, placeholder2
   ]);
 }
 
