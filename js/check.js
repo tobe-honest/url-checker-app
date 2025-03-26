@@ -43,7 +43,11 @@ async function run() {
     statusElem.textContent = "⚠️ 피싱 URL로 판단되어 차단되었습니다.";
   } else {
     statusElem.textContent = "✅ 안전한 URL입니다. 이동 중...";
-    setTimeout(() => window.location.href = target, 1000);
+    let finalUrl = target;
+    if (!/^https?:\/\//i.test(target)) {
+      finalUrl = "https://" + target;
+    }
+    setTimeout(() => window.location.href = finalUrl, 1000);
   }
 }
 
