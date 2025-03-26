@@ -36,6 +36,8 @@ async function run() {
 
   const results = await session.run(feeds);
   const score = results.output.data[0];
+  console.log("✅ 모델 예측 score:", score);
+
 
   if (score > 0.5) {
     statusElem.textContent = "⚠️ 피싱 URL로 판단되어 차단되었습니다.";
